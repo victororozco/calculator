@@ -39,7 +39,7 @@
         h1
           strong Historial
 
-        li.text-left(v-for="history in histories") {{history.a}} {{history.operator}} {{history.b}} = {{history.total}}
+        li.text-left(v-for="history in histories") {{history.operation}}
 
 </template>
 
@@ -61,20 +61,23 @@ export default {
   },
   methods: {
     save () {
-      calculatorService.save({ histories: this.histories, token: this.$store.state.token })
-        .then(res => {
-          if (res.data) {
-            console.log('Datos guardados..')
-          }
-        }).catch(err => {
-          console.log(err.response.data)
-        })
+      this.histories.map(history => {
+        calculatorService.save({ operation: history.operation })
+          .then(res => {
+            if (res.data) {
+              this.getHistories()
+            }
+          }).catch(err => {
+            console.log(err.response.data)
+          })
+      })
     },
     getHistories () {
       calculatorService.histories({token: this.$store.state.token})
         .then(res => {
           if (res.data) {
-            this.histories.push(res.data)
+            this.histories = []
+            res.data.map(i => this.histories.push(i))
           }
         }).catch(err => {
           console.log(err.response.data)
@@ -93,19 +96,19 @@ export default {
       switch (this.operator) {
         case '+':
           this.tot = parseFloat(this.a) + parseFloat(this.b)
-          this.histories.push({a: this.a, b: this.b, operator: '+', total: this.tot})
+          this.histories.push({operation: `${this.a} + ${this.b} = ${this.tot}`})
           break
         case '-':
           this.tot = parseFloat(this.a) - parseFloat(this.b)
-          this.histories.push({a: this.a, b: this.b, operator: '-', total: this.tot})
+          this.histories.push({operation: `${this.a} - ${this.b} = ${this.tot}`})
           break
         case '*':
           this.tot = parseFloat(this.a) * parseFloat(this.b)
-          this.histories.push({a: this.a, b: this.b, operator: '*', total: this.tot})
+          this.histories.push({operation: `${this.a} * ${this.b} = ${this.tot}`})
           break
         case '/':
           this.tot = parseFloat(this.a) / parseFloat(this.b)
-          this.histories.push({a: this.a, b: this.b, operator: '/', total: this.tot})
+          this.histories.push({operation: `${this.a} / ${this.b} = ${this.tot}`})
           break
       }
       this.display = this.tot
